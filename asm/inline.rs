@@ -336,6 +336,29 @@ pub use self::v8m::*;
 #[cfg(armv8m)]
 mod v8m {
     use core::arch::asm;
+    use core::sync::atomic::{compiler_fence, Ordering};
+
+    #[inline(always)]
+    pub unsafe fn __control_ns_r() -> u32 {
+        let r;
+        asm!("mrs {}, CONTROL_NS", out(reg) r, options(nomem, nostack, preserves_flags));
+        r
+    }
+
+    #[inline(always)]
+    pub unsafe fn __control_ns_w(w: u32) {
+        // ISB is required after writing to CONTROL,
+        // per ARM architectural requirements (see Application Note 321).
+        asm!(
+            "msr CONTROL_NS, {}",
+            "isb",
+            in(reg) w,
+            options(nomem, nostack, preserves_flags),
+        );
+
+        // Ensure memory accesses are not reordered around the CONTROL update.
+        compiler_fence(Ordering::SeqCst);
+    }
 
     #[inline(always)]
     pub unsafe fn __tt(mut target: u32) -> u32 {
@@ -375,6 +398,20 @@ mod v8m {
             options(nomem, nostack, preserves_flags),
         );
         target
+    }
+
+    #[inline(always)]
+    pub unsafe fn __psp_ns_r() -> u32 {
+        let r;
+        asm!("mrs {}, PSP_NS", out(reg) r, options(nomem, nostack, preserves_flags));
+        r
+    }
+
+    #[inline(always)]
+    pub unsafe fn __psp_ns_w(val: u32) {
+        // See comment on __msp_w. Unlike MSP, there are legitimate use-cases for modifying PSP
+        // if MSP is currently being used as the stack pointer.
+        asm!("msr PSP_NS, {}", in(reg) val, options(nomem, nostack, preserves_flags));
     }
 
     #[inline(always)]

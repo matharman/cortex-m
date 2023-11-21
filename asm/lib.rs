@@ -98,10 +98,14 @@ shims! {
 // Baseline and Mainline.
 #[cfg(armv8m)]
 shims! {
+    fn __control_ns_r() -> u32;
+    fn __control_ns_w(val: u32);
     fn __tt(target: u32) -> u32;
     fn __ttt(target: u32) -> u32;
     fn __tta(target: u32) -> u32;
     fn __ttat(target: u32) -> u32;
+    fn __psp_ns_r() -> u32;
+    fn __psp_ns_w(val: u32);
     fn __msp_ns_r() -> u32;
     fn __msp_ns_w(val: u32);
     fn __bxns(val: u32);

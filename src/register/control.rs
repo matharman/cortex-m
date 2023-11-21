@@ -162,3 +162,19 @@ pub unsafe fn write(control: Control) {
     let control = control.bits();
     call_asm!(__control_w(control: u32));
 }
+
+/// Reads the CPU register
+#[cfg(armv8m)]
+#[inline]
+pub fn read_ns() -> Control {
+    let bits: u32 = call_asm!(__control_ns_r() -> u32);
+    Control { bits }
+}
+
+/// Writes to the CPU register.
+#[cfg(armv8m)]
+#[inline]
+pub unsafe fn write_ns(control: Control) {
+    let control = control.bits();
+    call_asm!(__control_ns_w(control: u32));
+}
